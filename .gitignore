@@ -1,0 +1,11 @@
+# Environment files
+.env
+.devcontainer/.env
+devcontainer.example/.openbenches-mounts/
+
+# Local workbench execution evidence and process state
+**/.workbench-state/
+
+# OS
+.DS_Store
+*Zone.Identifier

@@ -1,0 +1,30 @@
+name: sys-benches
+
+services:
+  cloud-bench:
+    init: true
+    image: cloud-bench:${USER:-workbench}
+    container_name: cloud-bench
+    command: ["/bin/bash", "-c", 'sudo install -d -m 0700 -o "$$(id -u)" -g "$$(id -g)" "$$HOME/.workbenches-history" && if [ -f "$$HOME/.workbenches-history/.zsh_history" ]; then sudo chown "$$(id -u):$$(id -g)" "$$HOME/.workbenches-history/.zsh_history"; fi && exec sleep infinity']
+    volumes:
+      - cloudbench-zshhistory:/home/${USER:-workbench}/.workbenches-history
+      - ./.openbenches-mounts/config:/home/${USER:-workbench}/.config/workbenches:ro
+      # Mount full host home directory
+      - ~:/home/${USER:-workbench}:cached
+      # Azure CLI config may be symlinked outside the mounted home directory
+      # on WSL/Windows hosts. Override AZURE_CONFIG_HOST_PATH if needed.
+      - ${AZURE_CONFIG_HOST_PATH:-~/.azure}:/home/${USER:-workbench}/.azure:cached
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /workspace
+    environment:
+      - HISTFILE=/home/${USER:-workbench}/.workbenches-history/.zsh_history
+      - USER=${USER:-workbench}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    privileged: true
+    network_mode: host
+
+volumes:
+  cloudbench-zshhistory:
+    # Retain the existing volume; override for a legacy engine name.
+    name: ${WORKBENCH_HISTORY_VOLUME:-sys-benches_cloudbench-zshhistory}
